@@ -1,5 +1,9 @@
-def user_check(username, password):
-    # 開発中のため仮実装
-    # 本番では別途APIでチェックする想定
-    # 入力されたusername、passwordをusername#passwordの文字列に変換してハッシュ値を送信してチェック結果を参照する
-    return username == 'admin' and password == 'password'
+import hashlib
+import hmac
+
+VALID_HASH = "正しいハッシュ値"
+
+def user_check(username: str, password: str) -> bool:
+    combined = f"{username}#{password}"
+    input_hash = hashlib.sha256(combined.encode("utf-8")).hexdigest()
+    return hmac.compare_digest(input_hash, VALID_HASH)
