@@ -1,9 +1,6 @@
 from flask import Flask, request, jsonify
 from auth import login_user
 from utils import calculate_discount
-import os
-
-DEBUG_ON = os.environ["DEBUG_ON"]
 
 app = Flask(__name__)
 
@@ -14,6 +11,9 @@ def home():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json(force=True, silent=True)
+    if data is None:
+        return jsonify({"message": "Invalid Request"}), 400
+
     username = data.get("username")
     password = data.get("password")
 
@@ -30,6 +30,9 @@ def login():
 @app.route("/price", methods=["POST"])
 def price():
     data = request.get_json(force=True, silent=True)
+    if data is None:
+        return jsonify({"message": "Invalid Request"}), 400
+
     price = data.get("price")
     user_type = data.get("user_type")
 
@@ -42,4 +45,4 @@ def price():
 
 
 if __name__ == "__main__":
-    app.run(debug=DEBUG_ON)
+    app.run(debug=False)
