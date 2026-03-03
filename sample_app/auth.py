@@ -1,9 +1,14 @@
+import os
 import hashlib
 import hmac
 
-VALID_HASH = "正しいハッシュ値"
+def hash_credentials(username: str, password: str) -> str:
+    combined = f"{username}#{password}"
+    return hashlib.sha256(combined.encode("utf-8")).hexdigest()
 
 def user_check(username: str, password: str) -> bool:
-    combined = f"{username}#{password}"
-    input_hash = hashlib.sha256(combined.encode("utf-8")).hexdigest()
-    return hmac.compare_digest(input_hash, VALID_HASH)
+
+    input_hash = hash_credentials(username, password)
+    # 仮実装 環境変数から固定値取得
+    stored_hash = os.getenv("AUTH_HASH")
+    return hmac.compare_digest(input_hash, stored_hash)
