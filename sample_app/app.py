@@ -24,13 +24,13 @@ def login():
         data = request.get_json()  # invalid JSON -> BadRequest 等
     except BadRequest as e:
         # JSON自体が壊れている/パースできない
-        logging.info("Invalid JSON payload on /login: %s", e)
+        logging.warning("Invalid JSON payload on /login: %s", e)
         return jsonify({
             "message": "Invalid JSON."
         }), 400
     except UnsupportedMediaType as e:
         # まれに Content-Type 周りで例外になるケースの保険
-        logging.info("Unsupported media type on /login: %s", e)
+        logging.warning("Unsupported media type on /login: %s", e)
         return jsonify({
             "message": "Invalid request format. JSON required."
         }), 400
@@ -103,10 +103,10 @@ def price():
     try:
         data = request.get_json()
     except BadRequest as e:
-        logging.info("Invalid JSON payload on /price: %s", e)
+        logging.warning("Invalid JSON payload on /price: %s", e)
         return jsonify({"message": "Invalid JSON."}), 400
     except UnsupportedMediaType as e:
-        logging.info("Unsupported media type on /price: %s", e)
+        logging.warning("Unsupported media type on /price: %s", e)
         return jsonify({"message": "Invalid request format. JSON required."}), 400
     except Exception:
         logging.exception("Unexpected error while parsing JSON on /price")
@@ -134,8 +134,10 @@ def price():
     # price チェック
     try:
         price_value = parse_price(raw_price)
-    except (InvalidOperation, ValueError, TypeError):
-        return jsonify({"message": "Invalid request parameters. price must be a number."}), 400
+    except (ValueError):
+        return jsonify({"message": "Invalid request parameters. price cannot be empty."}), 400
+    except (InvalidOperation, TypeError):
+        return jsonify({"message": "Invalid request parameters. price must be a valid number."}), 400
 
     if price_value < 0:
         return jsonify({"message": "Invalid request parameters. price must be >= 0."}), 400
@@ -145,7 +147,7 @@ def price():
         price_value = price_value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     except (InvalidOperation, ValueError) as e:
         # quantize できないような異常値が来た場合の保険
-        logging.info("Invalid price quantize on /price: %s", e)
+        logging.warning("Invalid price quantize on /price: %s", e)
         return jsonify({"message": "Invalid request parameters. price must be a valid number."}), 400
 
     # 割引計算（ここは予期せぬ例外が起こり得るのでフォールバックを用意）
